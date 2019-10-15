@@ -10,3 +10,4 @@ tests/
 *.zip
 *.lock
 vendor
+*.tgz

@@ -1,0 +1,3 @@
+del mihdan-mailru-pulse-feed.tgz
+composer install --optimize-autoloader --classmap-authoritative --no-dev && 7z a -ttar -so -xr!mihdan-mailru-pulse-feed.tgz -xr!.git -xr!archive.bat -xr!.gitignore -xr!.travis.yml -xr!.editorconfig -xr!phpcs.xml -xr!assets -xr!readme.txt -xr!README.md ./* | 7z a -mx9 -si mihdan-mailru-pulse-feed.tgz
+:: mkdir -p mihdan-mailru-pulse-feed && tar xzf mihdan-mailru-pulse-feed.tgz -C mihdan-mailru-pulse-feed && rm ./mihdan-mailru-pulse-feed.tgz
