@@ -30,6 +30,7 @@ define( 'MIHDAN_MAILRU_PULSE_FEED_PATH', untrailingslashit( plugin_dir_path( __F
 define( 'MIHDAN_MAILRU_PULSE_FEED_URL', untrailingslashit( plugin_dir_url( __FILE__ ) ) );
 define( 'MIHDAN_MAILRU_PULSE_FEED_FILE', __FILE__ );
 define( 'MIHDAN_MAILRU_PULSE_FEED_SLUG', 'pulse' );
+define( 'MIHDAN_MAILRU_PULSE_CONTENT_SETTINGS', 'mailru_pulse_publish_content');
 
 /**
  * Init plugin class on plugin load.

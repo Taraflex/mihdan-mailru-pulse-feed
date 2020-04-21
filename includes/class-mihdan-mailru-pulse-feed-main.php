@@ -54,13 +54,6 @@ class Mihdan_Mailru_Pulse_Feed_Main
                         ['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]],
                         JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
                     );
-                } catch (\Exception $e) {
-                    //for php5
-                    @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
-                    echo json_encode(
-                        ['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]],
-                        JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-                    );
                 } finally {
                     ini_set('html_errors', '1');
                     die();
@@ -76,7 +69,10 @@ class Mihdan_Mailru_Pulse_Feed_Main
     public function meta_box_markup()
     {
         ?>
-<div><label class="selectit"><input type="checkbox" id="mailru_pulse_publish_input" <?php echo empty(get_post_meta(get_the_ID(), '_pulse_nopublish', true)) ? 'checked="checked"' : ''; ?>>Публиковать</label><span id="mailru_pulse_publish_spinner" class="spinner" style="float:initial;margin:0 10px"></span></div>
+<div>
+    <label class="selectit"><input type="checkbox" id="mailru_pulse_publish_input" <?php echo empty(get_post_meta(get_the_ID(), '_pulse_nopublish', true)) ? 'checked="checked"' : ''; ?>>Публиковать</label><span id="mailru_pulse_publish_spinner" class="spinner" style="float:initial;margin:0 10px"></span><br>
+    <label class="selectit"><input type="checkbox" id="mailru_pulse_publish_content" <?php echo empty(get_option(MIHDAN_MAILRU_PULSE_CONTENT_SETTINGS)) ? '': 'checked="checked"'; ?>>Включать контент (глобально для всего сайта)</label><span id="mailru_pulse_content_spinner" class="spinner" style="float:initial;margin:0 10px"></span>
+</div>
 <script>
 (function(){
     var processSettings = false;
@@ -87,37 +83,43 @@ class Mihdan_Mailru_Pulse_Feed_Main
         }
     };
 
-    var input = document.getElementById('mailru_pulse_publish_input');
-    var spinner = document.getElementById('mailru_pulse_publish_spinner');
-    if(input){
-        var label = input.parentElement;
-        input.addEventListener('change', function(){
-            label.style.pointerEvents = 'none';
-            label.style.userSelect = 'none';
-            label.style.msUserSelect = 'none';
-            label.style.webkitUserSelect = 'none';
-            label.style.opacity = '0.5';
-            spinner.style.visibility = 'visible';
-            processSettings = true;
-            $.post({
-                url: ajaxurl,
-                dataType: 'json',
-                data: {
-                    action: 'save_pulse_post_settings',
-                    publish: input.checked ? '1' : '',
-                    post: <?php echo get_the_ID();?>
-                }
-            }).fail(function(jqXHR, textStatus, errorThrown){
-                input.checked = !input.checked;
-                console.error(textStatus, errorThrown);
-                alert((textStatus || '') +'\n'+ (errorThrown || ''));
-            }).always(function(){
-                label.removeAttribute('style');
-                spinner.style.visibility = 'hidden';
-                processSettings = false;
+    function initPulseApiCall(inputId, spinnerId, action){
+        var input = document.getElementById(inputId);
+        var spinner = document.getElementById(spinnerId);
+        if(input){
+            var label = input.parentElement;
+            input.addEventListener('change', function(){
+                label.style.pointerEvents = 'none';
+                label.style.userSelect = 'none';
+                label.style.msUserSelect = 'none';
+                label.style.webkitUserSelect = 'none';
+                label.style.opacity = '0.5';
+                spinner.style.visibility = 'visible';
+                processSettings = true;
+                $.post({
+                    url: ajaxurl,
+                    dataType: 'json',
+                    data: {
+                        action: action,
+                        v: input.checked ? '1' : '',
+                        post: <?php echo get_the_ID();?>
+                    }
+                }).fail(function(jqXHR, textStatus, errorThrown){
+                    input.checked = !input.checked;
+                    console.error(textStatus, errorThrown);
+                    alert((textStatus || '') +'\n'+ (errorThrown || ''));
+                }).always(function(){
+                    label.removeAttribute('style');
+                    spinner.style.visibility = 'hidden';
+                    processSettings = false;
+                });
             });
-        });
+        }
     }
+
+    initPulseApiCall('mailru_pulse_publish_input', 'mailru_pulse_publish_spinner', 'save_pulse_post_settings');
+    initPulseApiCall('mailru_pulse_publish_content', 'mailru_pulse_content_spinner', 'save_pulse_content_settings');
+
     })();
 </script>
 <?php
@@ -147,10 +149,19 @@ class Mihdan_Mailru_Pulse_Feed_Main
         add_feed($this->feedname, array($this, 'require_feed_template'));
 
         $this->registerAjax('save_pulse_post_settings', function ($data) {
-            if (empty($data['publish'])) {
+            if (empty($data['v'])) {
                 update_post_meta($data['post'], '_pulse_nopublish', true);
             } else {
                 delete_post_meta($data['post'], '_pulse_nopublish');
+            }
+            return array('status' => 'ok');
+        });
+
+        $this->registerAjax('save_pulse_content_settings', function ($data) {
+            if (empty($data['v'])) {
+                delete_option(MIHDAN_MAILRU_PULSE_CONTENT_SETTINGS);
+            } else {
+                update_option(MIHDAN_MAILRU_PULSE_CONTENT_SETTINGS, $data['v']);
             }
             return array('status' => 'ok');
         });
