@@ -21,7 +21,7 @@
   "prefer-stable": true,
   "require": {
     "composer/installers": "*",
-    "scotteh/php-dom-wrapper": "^1.2"
+    "edwinhuish/domquery": "^1.0"
   },
   "require-dev": {
     "roave/security-advisories": "dev-master",

@@ -2,8 +2,8 @@
 header('Content-Type: ' . feed_content_type('rss-http') . '; charset=UTF-8', true);
 echo '<?xml version="1.0" encoding="UTF-8"?>';
 
-//ini_set('display_errors', 1);
-//error_reporting(E_ALL);
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 function pulse_content()
 {
@@ -16,27 +16,27 @@ function pulse_content()
         'figure' => [], 'figcaption'                         => [], 'img' => ['src' => true, 'alt' => true],
         'video'  => ['src' => true], 'source' => ['src' => true]
     ]);
-    $doc = new \DOMWrap\Document();
-    $doc->setHtml('<body>' . $content . '</body>');
-    $doc->find('img,video')->each(function (\DOMWrap\Element $i) {
-        if ($i->parent()->tagName != 'figure') {
-            $i->wrap('<figure>');
+    $doc = new \DQ\DomQuery('<body>' . $content . '<body>');
+    $doc->find('img,video')->each(function (\DQ\DomQuery $i) {
+        if ($i->getNodes()[0]->parentNode->tagName != 'figure') {
+            $i->wrap('<figure></figure>');
         }
         $figure = $i->parent();
-        if ($figure->parent()->lastChild === $figure->parent()->firstChild) {
-            $figure->unwrap();
+        $figp   = $figure->parent();
+        if ($figp->children()->count() < 2) {
+            $figp->replaceWith($figp->contents());
         }
         $thumbnail = null;
         $type      = null;
         if ($i->tagName == 'video') {
-            $thumbnail = $i->getAttr('src');
+            $thumbnail = $i->getAttribute('src');
             if (empty($thumbnail)) {
-                $i->setAttr('src', $thumbnail = $i->find('source')->getAttr('src'));
+                $i->setAttribute('src', $thumbnail = $i->children('source')->getAttribute('src'));
             }
-            $type = 'video/mp4';
+            $type = ['type' => 'video/mp4'];
             $i->children()->remove();
         } else {
-            $thumbnail = $i->getAttr('src');
+            $thumbnail = $i->getAttribute('src');
             $type      = wp_check_filetype($thumbnail);
         }
 
@@ -45,7 +45,8 @@ function pulse_content()
         }
     });
     echo '<content:encoded>';
-    echo $doc->saveXML($doc->find('body')->eq(0));
+    $doc->xml_mode = true;
+    echo $doc->getInnerHtml();
     echo '</content:encoded>';
 }
 
