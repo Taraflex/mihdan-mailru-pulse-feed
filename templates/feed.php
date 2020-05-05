@@ -2,8 +2,8 @@
 header('Content-Type: ' . feed_content_type('rss-http') . '; charset=UTF-8', true);
 echo '<?xml version="1.0" encoding="UTF-8"?>';
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+//ini_set('display_errors', 1);
+//error_reporting(E_ALL);
 
 function pulse_content()
 {
@@ -44,10 +44,10 @@ function pulse_content()
             echo '<enclosure url="' . esc_url($thumbnail) . '" type="' . esc_attr($type['type']) . '"/>';
         }
     });
-    echo '<content:encoded>';
+    echo '<content:encoded><![CDATA[';
     $doc->xml_mode = true;
     echo $doc->getInnerHtml();
-    echo '</content:encoded>';
+    echo ']]></content:encoded>';
 }
 
 ?>
